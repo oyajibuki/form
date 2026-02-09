@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>お問い合わせ</title>
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  background: #f5f7fa;
+  color: #333;
+}
+
+.contact-container {
+  max-width: 520px;
+  margin: 60px auto;
+  background: #fff;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+
+.contact-container h1 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.contact-container p {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #2c7be5;
+  box-shadow: 0 0 0 2px rgba(44,123,229,0.15);
+}
+
+.form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #2c7be5;
+  color: #fff;
+  font-size: 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background: #1a68d1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="contact-container">
+  <h1>お問い合わせ</h1>
+  <p>ご質問・ご要望がございましたら、下記フォームよりご連絡ください。</p>
+
+  <form id="contactForm">
+    <div class="form-group">
+      <label>お名前</label>
+      <input type="text" name="name" required>
+    </div>
+
+    <div class="form-group">
+      <label>メールアドレス</label>
+      <input type="email" name="email" required>
+    </div>
+
+    <div class="form-group">
+      <label>件名</label>
+      <input type="text" name="subject" required>
+    </div>
+
+    <div class="form-group">
+      <label>お問い合わせ内容</label>
+      <textarea name="message" required></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn">送信する</button>
+  </form>
+</div>
+
+<script>
+document.getElementById("contactForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const data = Object.fromEntries(new FormData(this).entries());
+
+  fetch("https://script.google.com/macros/s/AKfycbykwLKhkKfLKPdJEuOJS1YMhFfSRArUaVvHSOjiOaoUnhJML_ZOje1P0HDTTHIlPgKi/exec", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    alert("送信しました。ありがとうございます。");
+    this.reset();
+  })
+  .catch(() => {
+    alert("送信に失敗しました。時間をおいて再度お試しください。");
+  });
+});
+</script>
+
+</body>
+</html>
+
+
