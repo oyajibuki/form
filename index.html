@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お問い合わせ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --background-color: #f3f4f6;
+  --card-background: #ffffff;
+  --text-color: #1f2937;
+  --text-light: #6b7280;
+  --border-color: #e5e7eb;
+  --focus-ring: rgba(59, 130, 246, 0.5);
+  --success-color: #10b981;
+}
+
+body {
+  margin: 0;
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 600px;
+  background: var(--card-background);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 40px;
+  box-sizing: border-box;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  text-align: center;
+  color: #111827;
+}
+
+.lead {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 30px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.form-group {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.required {
+  color: #ef4444;
+  font-size: 12px;
+  margin-left: 4px;
+  font-weight: normal;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #f9fafb;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  background-color: #fff;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+button:hover {
+  background: var(--primary-hover);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid #fff;
+  width: 20px;
+  height: 20px;
+  -webkit-animation: spin 1s linear infinite; /* Safari */
+  animation: spin 1s linear infinite;
+  margin-left: 10px;
+  display: none;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.note {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--text-light);
+  text-align: center;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  transform: scale(0.9);
+  transition: transform 0.3s;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-overlay.active .modal {
+  transform: scale(1);
+}
+
+.modal-icon {
+  width: 60px;
+  height: 60px;
+  background-color: #d1fae5;
+  color: var(--success-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.modal-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.modal h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #111827;
+}
+
+.modal p {
+  color: var(--text-light);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.modal button {
+  background-color: var(--text-color);
+}
+
+.modal button:hover {
+  background-color: #000;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>お問い合わせ</h1>
+  <p class="lead">
+    ご質問・ご要望がございましたら、<br>下記フォームよりお気軽にご連絡ください。
+  </p>
+
+  <form id="contactForm">
+    <div class="form-group">
+      <label for="name">お名前<span class="required">必須</span></label>
+      <input type="text" id="name" name="name" required placeholder="山田 太郎">
+    </div>
+
+    <div class="form-group">
+      <label for="email">メールアドレス<span class="required">必須</span></label>
+      <input type="email" id="email" name="email" required placeholder="example@email.com">
+    </div>
+
+    <div class="form-group">
+      <label for="subject">件名<span class="required">必須</span></label>
+      <input type="text" id="subject" name="subject" required placeholder="お問い合わせの件">
+    </div>
+
+    <div class="form-group">
+      <label for="message">お問い合わせ内容<span class="required">必須</span></label>
+      <textarea id="message" name="message" required placeholder="詳細をご記入ください..."></textarea>
+    </div>
+
+    <button type="submit" id="submitButton">
+      <span>送信する</span>
+      <div class="spinner" id="spinner"></div>
+    </button>
+  </form>
+
+  <div class="note">
+    ※ 内容を確認のうえ、順次ご返信いたします。
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    <h2>送信完了</h2>
+    <p>お問い合わせありがとうございます。<br>内容を確認の上、担当者よりご連絡いたします。</p>
+    <button onclick="closeModal()">閉じる</button>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('contactForm');
+  const submitButton = document.getElementById('submitButton');
+  const spinner = document.getElementById('spinner');
+  const buttonText = submitButton.querySelector('span');
+  const modalOverlay = document.getElementById('modalOverlay');
+
+  // GAS Web App URL
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbz3FX15E-_y0KFkl38dD2hezWGyImOfr9HN9SN2kqBMyDonabRi_cmIIAlKnBXjEw9T/exec';
+
+  form.addEventListener('submit',e => {
+    e.preventDefault();
+    
+    // UI Loading State
+    submitButton.disabled = true;
+    buttonText.textContent = '送信中...';
+    spinner.style.display = 'block';
+
+    const formData = new FormData(form);
+
+    fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors'})
+      .then(response => {
+        // Since mode is no-cors, we can't check response.ok. 
+        // We assume success if the fetch promise resolves.
+        showModal();
+        form.reset();
+      })
+      .catch(error => {
+        console.error('Error!', error.message);
+        alert('送信に失敗しました。もう一度お試しください。');
+      })
+      .finally(() => {
+        // Reset Button State
+        submitButton.disabled = false;
+        buttonText.textContent = '送信する';
+        spinner.style.display = 'none';
+      });
+  });
+
+  function showModal() {
+    modalOverlay.classList.add('active');
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('active');
+  }
+</script>
+
+</body>
+</html>
