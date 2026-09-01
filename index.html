@@ -85,7 +85,8 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   padding: 12px 16px;
   font-size: 16px;
@@ -96,12 +97,40 @@ textarea {
   background-color: #f9fafb;
 }
 
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  font-family: inherit;
+  color: var(--text-color);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 44px;
+}
+
+select:invalid {
+  color: var(--text-light);
+}
+
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px var(--focus-ring);
   background-color: #fff;
+}
+
+optgroup {
+  font-weight: 700;
+  color: var(--text-light);
+}
+
+optgroup option {
+  font-weight: 400;
+  color: var(--text-color);
 }
 
 textarea {
@@ -268,6 +297,55 @@ button:disabled {
     </div>
 
     <div class="form-group">
+      <label for="app">アプリ名<span class="required">必須</span></label>
+      <select id="app" name="app" required>
+        <option value="" disabled selected>お問い合わせのアプリを選択してください</option>
+        <optgroup label="iOSアプリ">
+          <option value="Toonify Studio">Toonify Studio</option>
+          <option value="TuneDrop">TuneDrop</option>
+          <option value="NonStop">NonStop</option>
+          <option value="TrustGPS">TrustGPS</option>
+          <option value="シンプル解凍">シンプル解凍</option>
+          <option value="シンプルサブスク管理">シンプルサブスク管理</option>
+          <option value="AppGuard">AppGuard</option>
+          <option value="HOLD — PlunkTimer">HOLD — PlunkTimer</option>
+          <option value="断酒クエスト">断酒クエスト</option>
+          <option value="運動クエスト">運動クエスト</option>
+          <option value="勉強クエスト">勉強クエスト</option>
+          <option value="DevKeep">DevKeep</option>
+          <option value="GEOAlame">GEOAlame</option>
+        </optgroup>
+        <optgroup label="WEBアプリ・ツール">
+          <option value="OshiPay">OshiPay</option>
+          <option value="Fit-Sign">Fit-Sign</option>
+          <option value="これ俺の！(Itsme)">これ俺の！(Itsme)</option>
+          <option value="LegacyMap">LegacyMap</option>
+          <option value="VibeDiff">VibeDiff</option>
+          <option value="VibeMap">VibeMap</option>
+          <option value="AI字幕自動生成ツール">AI字幕自動生成ツール</option>
+          <option value="ClearCut">ClearCut</option>
+          <option value="画像・動画リサイズツール">画像・動画リサイズツール</option>
+          <option value="Word自動ルビ振りツール">Word自動ルビ振りツール</option>
+          <option value="青空文庫ルビ削除ツール">青空文庫ルビ削除ツール</option>
+          <option value="CSV・Excel自動整形ツール">CSV・Excel自動整形ツール</option>
+          <option value="StudyFocus">StudyFocus</option>
+          <option value="KnowledgeMap">KnowledgeMap</option>
+          <option value="TrashQuest">TrashQuest</option>
+          <option value="RouteLog">RouteLog</option>
+          <option value="Market Dashboard">Market Dashboard</option>
+          <option value="WalkCraft">WalkCraft</option>
+          <option value="ポワ・サバ">ポワ・サバ</option>
+          <option value="Army・Rush">Army・Rush</option>
+          <option value="Katana">Katana</option>
+        </optgroup>
+        <optgroup label="その他">
+          <option value="その他">その他（下欄に入力）</option>
+        </optgroup>
+      </select>
+      <input type="text" id="appOther" name="appOther" placeholder="アプリ名をご記入ください" style="display:none; margin-top:8px;">
+    </div>
+
+    <div class="form-group">
       <label for="subject">件名<span class="required">必須</span></label>
       <input type="text" id="subject" name="subject" required placeholder="お問い合わせの件">
     </div>
@@ -308,6 +386,17 @@ button:disabled {
   const spinner = document.getElementById('spinner');
   const buttonText = submitButton.querySelector('span');
   const modalOverlay = document.getElementById('modalOverlay');
+  const appSelect = document.getElementById('app');
+  const appOther = document.getElementById('appOther');
+
+  // 「その他」選択時のみ自由入力欄を表示
+  function syncAppOther() {
+    const isOther = appSelect.value === 'その他';
+    appOther.style.display = isOther ? 'block' : 'none';
+    appOther.required = isOther;
+    if (!isOther) appOther.value = '';
+  }
+  appSelect.addEventListener('change', syncAppOther);
 
   // GAS Web App URL
   const scriptURL = 'https://script.google.com/macros/s/AKfycbz3FX15E-_y0KFkl38dD2hezWGyImOfr9HN9SN2kqBMyDonabRi_cmIIAlKnBXjEw9T/exec';
@@ -322,12 +411,21 @@ button:disabled {
 
     const formData = new FormData(form);
 
+    // 「その他」の場合は入力されたアプリ名を app として送信
+    if (appSelect.value === 'その他' && appOther.value.trim()) {
+      formData.set('app', appOther.value.trim());
+    }
+    formData.delete('appOther');
+    // GAS側が app 未対応でも件名から判別できるようにする
+    formData.set('subject', '【' + formData.get('app') + '】' + formData.get('subject'));
+
     fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors'})
       .then(response => {
         // Since mode is no-cors, we can't check response.ok. 
         // We assume success if the fetch promise resolves.
         showModal();
         form.reset();
+        syncAppOther();
       })
       .catch(error => {
         console.error('Error!', error.message);
@@ -352,6 +450,17 @@ button:disabled {
   // URLパラメータからの自動入力
   document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.has('app')) {
+      const appValue = urlParams.get('app');
+      const matched = Array.from(appSelect.options).some(o => o.value === appValue);
+      if (matched) {
+        appSelect.value = appValue;
+      } else {
+        appSelect.value = 'その他';
+        appOther.value = appValue;
+      }
+      syncAppOther();
+    }
     if(urlParams.has('subject')) {
       document.getElementById('subject').value = urlParams.get('subject');
     }
