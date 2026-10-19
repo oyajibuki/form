@@ -111,6 +111,17 @@ label {
   flex: none;
 }
 
+.langsw {
+  text-align: right;
+  font-size: 13px;
+  margin: -10px 0 8px;
+}
+
+.langsw a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
 .required {
   color: #ef4444;
   font-size: 12px;
@@ -314,6 +325,7 @@ button:disabled {
 <body>
 
 <div class="container">
+  <div class="langsw"><a id="langLink" href="?lang=en">English</a></div>
   <h1>お問い合わせ</h1>
   <p class="lead">
     ご質問・ご要望がございましたら、<br>下記フォームよりお気軽にご連絡ください。
@@ -439,6 +451,58 @@ button:disabled {
 </div>
 
 <script>
+  // ===== 言語（?lang=en / ?lang=ja。無ければブラウザの言語） =====
+  // 送信する値（app の value など）は日本語のまま。表示だけを切り替える
+  const LANG = (() => {
+    const q = new URLSearchParams(location.search).get('lang');
+    if (q === 'en' || q === 'ja') return q;
+    return (navigator.language || 'ja').toLowerCase().startsWith('ja') ? 'ja' : 'en';
+  })();
+  const TXT = {
+    ja: { sending: '送信中...', send: '送信する', fail: '送信に失敗しました。もう一度お試しください。', anon: '（匿名）',
+      doneReply: 'お問い合わせありがとうございます。<br>内容を確認の上、担当者よりご連絡いたします。',
+      doneNoReply: 'お問い合わせありがとうございます。<br>内容はすべて目を通します（メールアドレスが無いため、返信はいたしません）。' },
+    en: { sending: 'Sending...', send: 'Send', fail: 'Sending failed. Please try again.', anon: 'Anonymous',
+      doneReply: 'Thank you for your message.<br>We will read it and get back to you.',
+      doneNoReply: 'Thank you for your message.<br>We read every message, but without an email address we cannot reply.' },
+  };
+  const T = k => TXT[LANG][k];
+  function applyLang() {
+    const link = document.getElementById('langLink');
+    link.textContent = LANG === 'ja' ? 'English' : '日本語';
+    link.href = '?lang=' + (LANG === 'ja' ? 'en' : 'ja') + (new URLSearchParams(location.search).get('app') ? '&app=' + encodeURIComponent(new URLSearchParams(location.search).get('app')) : '');
+    if (LANG === 'ja') return;
+    document.documentElement.lang = 'en';
+    document.title = 'Contact';
+    const $ = s => document.querySelector(s);
+    $('h1').textContent = 'Contact';
+    $('.lead').innerHTML = 'Questions or requests?<br>Send us a message using the form below.';
+    const label = (id, text) => { const l = $('label[for="' + id + '"]'); l.firstChild.textContent = text; };
+    label('name', 'Name'); label('email', 'Email'); label('app', 'App'); label('subject', 'Subject'); label('message', 'Message');
+    document.querySelectorAll('.optional').forEach(e => { e.textContent = 'Optional'; });
+    document.querySelectorAll('.required').forEach(e => { e.textContent = 'Required'; });
+    $('#name').placeholder = 'Anonymous or a nickname is fine';
+    $('#appOther').placeholder = 'Enter the app name';
+    $('#subject').placeholder = 'What is this about?';
+    $('#message').placeholder = 'Tell us the details...';
+    $('.hint').textContent = 'Leave your email if you would like a reply. If it is blank or mistyped, we cannot reply.';
+    $('#noreplyBox').lastChild.textContent = ' Send without an email address (I understand there will be no reply)';
+    const groups = { 'iOSアプリ': 'iOS apps', 'WEBアプリ・ツール': 'Web apps & tools', 'その他': 'Other' };
+    document.querySelectorAll('#app optgroup').forEach(g => { g.label = groups[g.label] || g.label; });
+    const names = {
+      '': 'Choose an app', 'その他': 'Other (enter below)', '7千万分の1': '1 in 170 Million (career simulation)', 'これ俺の！(Itsme)': 'ItsMe',
+      'AI字幕自動生成ツール': 'AI Subtitle Generator', '画像・動画リサイズツール': 'Image & Video Resizer', 'Word自動ルビ振りツール': 'Word Ruby (Furigana) Tool',
+      '青空文庫ルビ削除ツール': 'Aozora Bunko Ruby Remover', 'CSV・Excel自動整形ツール': 'CSV / Excel Auto-Formatter', 'ポワ・サバ': 'Powa Survival', 'Army・Rush': 'Army Rush',
+    };
+    document.querySelectorAll('#app option').forEach(o => { if (names[o.value] != null) o.textContent = names[o.value]; });
+    $('#submitButton span').textContent = T('send');
+    $('.note').innerHTML = '* Name and email are optional. You can write anonymously.<br>* If you leave an email address, we will read your message and reply in turn.';
+    $('.modal h2').textContent = 'Sent';
+    $('#doneText').innerHTML = T('doneReply');
+    $('.modal button').textContent = 'Close';
+  }
+  applyLang();
+
   const form = document.getElementById('contactForm');
   const submitButton = document.getElementById('submitButton');
   const spinner = document.getElementById('spinner');
@@ -477,7 +541,7 @@ button:disabled {
     
     // UI Loading State
     submitButton.disabled = true;
-    buttonText.textContent = '送信中...';
+    buttonText.textContent = T('sending');
     spinner.style.display = 'block';
 
     const formData = new FormData(form);
@@ -489,11 +553,11 @@ button:disabled {
     formData.delete('appOther');
     // 名前・メールは任意。空欄のメールは送らない（返信先が空だとメール通知が失敗するため）
     const hasEmail = !!emailInput.value.trim();
-    if (!formData.get('name').trim()) formData.set('name', '（匿名）');
+    if (!formData.get('name').trim()) formData.set('name', T('anon'));
     if (!hasEmail) formData.delete('email');
-    document.getElementById('doneText').innerHTML = hasEmail
-      ? 'お問い合わせありがとうございます。<br>内容を確認の上、担当者よりご連絡いたします。'
-      : 'お問い合わせありがとうございます。<br>内容はすべて目を通します（メールアドレスが無いため、返信はいたしません）。';
+    document.getElementById('doneText').innerHTML = T(hasEmail ? 'doneReply' : 'doneNoReply');
+    // 英語のフォームから来たことが分かるように、件名に [EN] を付ける
+    if (LANG === 'en') formData.set('subject', '[EN] ' + formData.get('subject'));
     // GAS側が app 未対応でも件名から判別できるようにする
     formData.set('subject', '【' + formData.get('app') + '】' + formData.get('subject'));
 
@@ -508,12 +572,12 @@ button:disabled {
       })
       .catch(error => {
         console.error('Error!', error.message);
-        alert('送信に失敗しました。もう一度お試しください。');
+        alert(T('fail'));
       })
       .finally(() => {
         // Reset Button State
         submitButton.disabled = false;
-        buttonText.textContent = '送信する';
+        buttonText.textContent = T('send');
         spinner.style.display = 'none';
       });
   });
