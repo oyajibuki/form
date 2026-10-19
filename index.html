@@ -77,6 +77,40 @@ label {
   color: #374151;
 }
 
+.optional {
+  color: #6b7280;
+  font-size: 12px;
+  margin-left: 4px;
+  font-weight: normal;
+}
+
+.hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+
+.noreply {
+  display: none;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef3c7;
+  font-size: 13px;
+  color: #78350f;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.noreply input {
+  width: auto;
+  margin: 3px 0 0;
+  flex: none;
+}
+
 .required {
   color: #ef4444;
   font-size: 12px;
@@ -287,13 +321,15 @@ button:disabled {
 
   <form id="contactForm">
     <div class="form-group">
-      <label for="name">お名前<span class="required">必須</span></label>
-      <input type="text" id="name" name="name" required placeholder="山田 太郎">
+      <label for="name">お名前<span class="optional">任意</span></label>
+      <input type="text" id="name" name="name" placeholder="匿名・ニックネームでもOK">
     </div>
 
     <div class="form-group">
-      <label for="email">メールアドレス<span class="required">必須</span></label>
-      <input type="email" id="email" name="email" required placeholder="example@email.com">
+      <label for="email">メールアドレス<span class="optional">任意</span></label>
+      <input type="email" id="email" name="email" placeholder="example@email.com">
+      <p class="hint">返信が必要な方はご記入ください。空欄の場合や、アドレスが間違っている場合は、返信できません。</p>
+      <label class="noreply" id="noreplyBox"><input type="checkbox" id="noreply"> メールアドレスを書かずに送ります（返信がないことを了承します）</label>
     </div>
 
     <div class="form-group">
@@ -336,6 +372,7 @@ button:disabled {
           <!-- END ios-apps -->
         </optgroup>
         <optgroup label="WEBアプリ・ツール">
+          <option value="7千万分の1">7千万分の1（職業シミュレーション）</option>
           <option value="OshiPay">OshiPay</option>
           <option value="Fit-Sign">Fit-Sign</option>
           <option value="これ俺の！(Itsme)">これ俺の！(Itsme)</option>
@@ -382,7 +419,8 @@ button:disabled {
   </form>
 
   <div class="note">
-    ※ 内容を確認のうえ、順次ご返信いたします。
+    ※ お名前・メールアドレスは任意です。匿名でも送れます。<br>
+    ※ メールアドレスをご記入いただいた方には、内容を確認のうえ順次ご返信いたします。
   </div>
 </div>
 
@@ -395,7 +433,7 @@ button:disabled {
       </svg>
     </div>
     <h2>送信完了</h2>
-    <p>お問い合わせありがとうございます。<br>内容を確認の上、担当者よりご連絡いたします。</p>
+    <p id="doneText">お問い合わせありがとうございます。<br>内容を確認の上、担当者よりご連絡いたします。</p>
     <button onclick="closeModal()">閉じる</button>
   </div>
 </div>
@@ -418,6 +456,19 @@ button:disabled {
   }
   appSelect.addEventListener('change', syncAppOther);
 
+  // メールアドレスが空欄のときだけ「返信がないことを了承」のチェックを出し、必須にする
+  const emailInput = document.getElementById('email');
+  const noreplyBox = document.getElementById('noreplyBox');
+  const noreply = document.getElementById('noreply');
+  function syncNoreply() {
+    const blank = !emailInput.value.trim();
+    noreplyBox.style.display = blank ? 'flex' : 'none';
+    noreply.required = blank;
+    if (!blank) noreply.checked = false;
+  }
+  emailInput.addEventListener('input', syncNoreply);
+  syncNoreply();
+
   // GAS Web App URL
   const scriptURL = 'https://script.google.com/macros/s/AKfycbz3FX15E-_y0KFkl38dD2hezWGyImOfr9HN9SN2kqBMyDonabRi_cmIIAlKnBXjEw9T/exec';
 
@@ -436,6 +487,13 @@ button:disabled {
       formData.set('app', appOther.value.trim());
     }
     formData.delete('appOther');
+    // 名前・メールは任意。空欄のメールは送らない（返信先が空だとメール通知が失敗するため）
+    const hasEmail = !!emailInput.value.trim();
+    if (!formData.get('name').trim()) formData.set('name', '（匿名）');
+    if (!hasEmail) formData.delete('email');
+    document.getElementById('doneText').innerHTML = hasEmail
+      ? 'お問い合わせありがとうございます。<br>内容を確認の上、担当者よりご連絡いたします。'
+      : 'お問い合わせありがとうございます。<br>内容はすべて目を通します（メールアドレスが無いため、返信はいたしません）。';
     // GAS側が app 未対応でも件名から判別できるようにする
     formData.set('subject', '【' + formData.get('app') + '】' + formData.get('subject'));
 
@@ -446,6 +504,7 @@ button:disabled {
         showModal();
         form.reset();
         syncAppOther();
+        syncNoreply();
       })
       .catch(error => {
         console.error('Error!', error.message);
